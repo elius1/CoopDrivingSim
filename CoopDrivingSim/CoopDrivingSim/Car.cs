@@ -84,5 +84,10 @@ namespace CoopDrivingSim
 
             base.Update();
         }
+
+        public Vector2 Seek()
+        {
+            return new Vector2();
+        }
     }
 }
