@@ -54,8 +54,6 @@ namespace CoopDrivingSim
             //Movement
             float secondsElapsed = (float)Simulator.SimTime.ElapsedGameTime.TotalSeconds;
 
-            // right place?
-            this.force = this.Seek(new Vector2(40, 40));
 
             this.force = Util.Truncate(this.force, Car.MAX_FORCE);
 
@@ -87,43 +85,5 @@ namespace CoopDrivingSim
 
             base.Update();
         }
-
-        public Vector2 Seek(Vector2 target)
-        {
-            Vector2 desiredVelocity = this.Position - target;
-            desiredVelocity.Normalize();
-            desiredVelocity = desiredVelocity * MAX_VELOCITY;
-
-            Vector2 steering = desiredVelocity - velocity;
-
-
-            return steering;
-        }
-
-        /*
-        public Vector2 Pursuit(Car quarry)
-        {
-        }
-
-        public Vector2 Arrive(Vector2 target)
-        {
-        }
-
-        public Vector2 AvoidObstacles()
-        {
-        }
-
-        public Vector2 FollowLeader(Car leader)
-        {
-        }
-
-        public Vector2 FollowPath()
-        {
-        }
-         
-        public Vector2 Interpose(Car car1, Car car2)
-        {
-        }
-        */
     }
 }

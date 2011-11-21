@@ -39,6 +39,7 @@ namespace CoopDrivingSim
             
             //Hier het scenario opbouwen, door bijvoorbeeld auto's aan te maken:
             AutonomousCar autoCar = new AutonomousCar(new Vector2(300));
+            AutonomousCar anotherAutoCar = new AutonomousCar(new Vector2(300, 400));
         }
 
         protected override void UnloadContent()
