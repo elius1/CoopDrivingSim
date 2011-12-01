@@ -18,11 +18,22 @@ namespace CoopDrivingSim
         private GraphicsDeviceManager graphics;
         private Car arrowCar;
 
+        public const int ROAD_TOP = 280;
+        public const int LANE_SEP = 360;
+        public const int ROAD_BOTTOM = 440;
+        public const int NARROW_START = 600;
+        public const int NARROW_END = 1100;
+
         public CoopDrivingSim()
         {
             this.graphics = new GraphicsDeviceManager(this);
             this.Content.RootDirectory = "Content";
             this.IsMouseVisible = true;
+
+            this.graphics.PreferredBackBufferWidth = 1280;
+            this.graphics.PreferredBackBufferHeight = 720;
+            this.graphics.IsFullScreen = false;
+            this.graphics.ApplyChanges();
         }
 
         protected override void Initialize()
@@ -34,12 +45,14 @@ namespace CoopDrivingSim
 
         protected override void LoadContent()
         {
+            Sprite road = new Sprite(Simulator.Content.Load<Texture2D>("Road"));
+            road.Position = new Vector2(640, 360);
             this.arrowCar = new Car(new Vector2(200));
-            Car obstacle = new Car(new Vector2(500));
+            Car obstacle = new Car(new Vector2(385));
             
             //Hier het scenario opbouwen, door bijvoorbeeld auto's aan te maken:
-            AutonomousCar autoCar = new AutonomousCar(new Vector2(300));
-            AutonomousCar anotherAutoCar = new AutonomousCar(new Vector2(300, 400));
+            //AutonomousCar autoCar = new AutonomousCar(new Vector2(300));
+            //AutonomousCar anotherAutoCar = new AutonomousCar(new Vector2(300, 400));
         }
 
         protected override void UnloadContent()

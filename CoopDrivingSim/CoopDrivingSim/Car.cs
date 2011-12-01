@@ -43,10 +43,19 @@ namespace CoopDrivingSim
             get { return this.velocity; }
         }
 
+        private float collisionDist;
+        public float CollisionDist
+        {
+            get { return this.collisionDist; }
+        }
+
+        private List<Car> collidedCars = new List<Car>();
+
         public Car(Vector2 position)
-            : base(Simulator.Content.Load<Texture2D>("Car"))
+            : base(Simulator.Content.Load<Texture2D>("Car2"))
         {
             this.Position = position;
+            this.collisionDist = (float)Math.Sqrt(Math.Pow(this.Width, 2) + Math.Pow(this.Height, 2));
         }
 
         public override void Update()
@@ -66,19 +75,35 @@ namespace CoopDrivingSim
 
             if (this.velocity.Length() != 0)
             {
-                this.Rotation = (float)Math.Atan(this.velocity.Y / this.velocity.X);
+                this.Rotation = (float)Math.Atan2(this.velocity.Y, this.velocity.X);
             }
 
-            //Collision Detection
-            float collisionDist = (float)Math.Sqrt(Math.Pow(this.Width, 2) + Math.Pow(this.Height, 2));
+            //Collision Detection            
             foreach (Component2D component in Simulator.Components)
             {
                 if (component is Car && component != this)
                 {
                     float dist = (this.Position - component.Position).Length();
-                    if (dist < collisionDist)
+                    if (dist < this.collisionDist)
                     {
-                        Console.WriteLine("!!!Collision!!!");
+                        if (this.collidedCars.Contains(component as Car))
+                        {
+                        }
+                        else
+                        {
+                            this.collidedCars.Add(component as Car);
+                            Console.WriteLine("!!!Collision!!!");
+                        }
+                    }
+                    else
+                    {
+                        if (this.collidedCars.Contains(component as Car))
+                        {
+                            this.collidedCars.Remove(component as Car);
+                        }
+                        else
+                        {
+                        }
                     }
                 }
             }
