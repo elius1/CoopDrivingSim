@@ -30,7 +30,7 @@ namespace CoopDrivingSim
                 }
             }
 
-            this.behaviour = Behaviours.Seek;
+            this.behaviour = Behaviours.Arrive;
 
             switch (behaviour)
             {
@@ -44,9 +44,10 @@ namespace CoopDrivingSim
                     this.Force = Pursuit(quarry);
                     break;
                 case Behaviours.FollowLeader:
-                    //this.Force = FollowLeader(leader);
+                    this.Force = FollowLeader(quarry);
+                    break;
                 case Behaviours.Interpose:
-                    //this.Force = Interpose(car1, car2);
+                    //this.Force = Interpose(null, null);
                     break;
                 case Behaviours.FollowPath:
                 default:
@@ -118,13 +119,19 @@ namespace CoopDrivingSim
         {
         }
 
-        
-
         public Vector2 FollowPath()
         {
         }
-         
-        
-         */
+
+        public Vector2 Queue()
+        {
+            // seek, braking and separation
+        }
+
+        public Vector2 Separate()
+        {
+
+        }
+        */
     }
 }
