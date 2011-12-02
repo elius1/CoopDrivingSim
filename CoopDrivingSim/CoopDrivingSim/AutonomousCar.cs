@@ -11,49 +11,68 @@ namespace CoopDrivingSim
 
         // behaviour
         private Behaviours behaviour;
+        private List<Car> neighborhood = new List<Car>();
+        private float targetY;
 
         public AutonomousCar(Vector2 position)
             : base(position)
         {
+            this.targetY = position.Y;
         }
 
         public override void Update()
         {
             Car quarry = null;
-            
+
+            //Console.WriteLine(this.GPSPosition);
+            this.neighborhood.Clear();
             //Informatie van andere auto's ophalen:
             foreach (Component2D component in Simulator.Components)
             {
                 if (component is Car && component != this)
                 {
+                    this.neighborhood.Add(component as Car);
                     quarry = (Car) component;
                 }
             }
 
-            this.behaviour = Behaviours.Arrive;
+            this.behaviour = Behaviours.FollowPath;
 
-            switch (behaviour)
-            {
-                case Behaviours.Seek:
-                    this.Force = Seek(new Vector2(600, 400));
-                    break;
-                case Behaviours.Arrive:
-                    this.Force = Arrive(new Vector2(700, 500));
-                    break;
-                case Behaviours.Pursuit:
-                    this.Force = Pursuit(quarry);
-                    break;
-                case Behaviours.FollowLeader:
-                    this.Force = FollowLeader(quarry);
-                    break;
-                case Behaviours.Interpose:
-                    //this.Force = Interpose(null, null);
-                    break;
-                case Behaviours.FollowPath:
-                default:
-                    //this.FollowPath();
-                    break;
-            }
+            this.Force += this.Seek(new Vector2(2000, this.targetY));
+            Vector2 followPath = this.FollowPath() * 10000;
+            //Console.WriteLine("pat: " + followPath);
+            this.Force += followPath;
+            Vector2 separate = this.Separate() * 10000;
+            //Console.WriteLine("sep: " + separate);
+            this.Force += separate;
+
+            Car shouldFollow = ShouldFollow();
+            if (shouldFollow != null) this.Force += this.FollowLeader(shouldFollow);
+
+            //switch (behaviour)
+            //{
+            //    case Behaviours.Seek:
+            //        this.Force = Seek(new Vector2(600, 400));
+            //        break;
+            //    case Behaviours.Arrive:
+            //        this.Force = Arrive(new Vector2(700, 500));
+            //        break;
+            //    case Behaviours.Pursuit:
+            //        this.Force = Pursuit(quarry);
+            //        break;
+            //    case Behaviours.FollowLeader:
+            //        this.Force = FollowLeader(quarry);
+            //        break;
+            //    case Behaviours.Interpose:
+            //        //this.Force = Interpose(null, null);
+            //        break;
+            //    case Behaviours.FollowPath:
+            //        this.Force += this.FollowPath();
+            //        break;
+            //    default:
+            //        //this.FollowPath();
+            //        break;
+            //}
 
             
 
@@ -63,9 +82,9 @@ namespace CoopDrivingSim
             base.Update();
         }
 
-        private Vector2 PredictFuturePosition(Car car, float T)
+        private static Vector2 PredictFuturePosition(Car car, float T)
         {
-            return car.Velocity * T;
+            return car.GPSPosition + car.Velocity * T;
         }
 
         public Vector2 Seek(Vector2 target)
@@ -101,7 +120,7 @@ namespace CoopDrivingSim
 
         public Vector2 FollowLeader(Car leader)
         {
-            float distanceOffset = 0.1f;
+            float distanceOffset = this.CollisionDist;
             return Arrive(leader.GPSPosition - distanceOffset * leader.Velocity);
         }
 
@@ -114,24 +133,101 @@ namespace CoopDrivingSim
             return Seek(desiredPosition);
         }
 
-        /*
         public Vector2 AvoidObstacles()
         {
+            return Vector2.Zero;
         }
 
         public Vector2 FollowPath()
         {
+            Vector2 futurePos = AutonomousCar.PredictFuturePosition(this, (float)Simulator.SimTime.ElapsedGameTime.TotalSeconds);
+
+            float outside = this.onPath(futurePos);
+            bool correctDirection = futurePos.X >= this.GPSPosition.X;
+
+            if (outside == 0 && correctDirection)
+            {
+                return Vector2.Zero;
+            }
+            else
+            {
+                Vector2 target = new Vector2(futurePos.X, CoopDrivingSim.TOP_LANE);
+                return this.Seek(target);
+            }
+        }
+
+        public float onPath(Vector2 futurePos)
+        {
+            if (futurePos.X > CoopDrivingSim.NARROW_START && futurePos.X < CoopDrivingSim.NARROW_END)
+            {
+                if (futurePos.Y < CoopDrivingSim.TOP_LANE - CoopDrivingSim.LANE_RADIUS / 2)
+                {
+                    return (CoopDrivingSim.TOP_LANE - CoopDrivingSim.LANE_RADIUS / 2) - futurePos.Y;
+                }
+                else if (futurePos.Y > CoopDrivingSim.TOP_LANE + CoopDrivingSim.LANE_RADIUS / 2)
+                {
+                    return (CoopDrivingSim.TOP_LANE + CoopDrivingSim.LANE_RADIUS / 2) + futurePos.Y;
+                }
+                else
+                {
+                    return 0f;
+                }
+            }
+            else
+            {
+                if (futurePos.Y < CoopDrivingSim.LANE_SEP - CoopDrivingSim.LANE_RADIUS)
+                {
+                    return (CoopDrivingSim.LANE_SEP - CoopDrivingSim.LANE_RADIUS) - futurePos.Y;
+                }
+                else if (futurePos.Y > CoopDrivingSim.LANE_SEP + CoopDrivingSim.LANE_RADIUS)
+                {
+                    return (CoopDrivingSim.LANE_SEP + CoopDrivingSim.LANE_RADIUS) + futurePos.Y;
+                }
+                else
+                {
+                    return 0f;
+                }
+            }
         }
 
         public Vector2 Queue()
         {
-            // seek, braking and separation
+            return Vector2.Zero;// seek, braking and separation
         }
 
         public Vector2 Separate()
-        {
+        {            
+            Vector2 separation = Vector2.Zero;
+            foreach (Car car in this.neighborhood)
+            {
+                Vector2 distance = this.GPSPosition - car.GPSPosition;
+                float r = distance.Length() - this.CollisionDist;
+                distance.Normalize();
+                distance *= (1 / (float)Math.Pow(r, 2));
+                separation += distance;
+            }
 
+            return separation;
         }
-        */
+
+        public Car ShouldFollow()
+        {
+            if (this.GPSPosition.X > CoopDrivingSim.NARROW_START - 50 && this.GPSPosition.X < CoopDrivingSim.NARROW_END)
+            {
+                foreach (Car car in this.neighborhood)
+                {
+                    if (car.GPSPosition.X > this.GPSPosition.X && car.GPSPosition.Y > this.GPSPosition.Y
+                        && car.GPSPosition.X < CoopDrivingSim.NARROW_START + 100)
+                    {
+                        return car;
+                    }
+                }
+                return null;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

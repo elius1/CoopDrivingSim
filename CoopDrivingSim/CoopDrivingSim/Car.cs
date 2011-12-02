@@ -60,6 +60,8 @@ namespace CoopDrivingSim
 
         public override void Update()
         {
+            if (this.Position.X > 1300) this.Dispose();
+            
             //Movement
             float secondsElapsed = (float)Simulator.SimTime.ElapsedGameTime.TotalSeconds;
 

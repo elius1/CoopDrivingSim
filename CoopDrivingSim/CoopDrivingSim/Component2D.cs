@@ -43,5 +43,10 @@ namespace CoopDrivingSim
         public virtual void Draw()
         {
         }
+
+        public virtual void Dispose()
+        {
+            Simulator.Components.Remove(this);
+        }
     }
 }
