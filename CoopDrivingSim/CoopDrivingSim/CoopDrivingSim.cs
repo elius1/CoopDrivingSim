@@ -16,18 +16,8 @@ namespace CoopDrivingSim
     public class CoopDrivingSim : Game
     {
         private GraphicsDeviceManager graphics;
-        private Car arrowCar;
 
-        //private List<AutonomousCar> autoCars = new List<AutonomousCar>();
-
-        public const int ROAD_TOP = 280;
-        public const int TOP_LANE = 320;
-        public const int LANE_RADIUS = 80;
-        public const int LANE_SEP = 360;
-        public const int BOTTOM_LANE = 400;
-        public const int ROAD_BOTTOM = 440;
-        public const int NARROW_START = 600;
-        public const int NARROW_END = 1100;
+        private float CreateTimeElapsed = 0f;
 
         public CoopDrivingSim()
         {
@@ -55,59 +45,55 @@ namespace CoopDrivingSim
         {
             Sprite road = new Sprite(Simulator.Content.Load<Texture2D>("Road"));
             road.Position = new Vector2(640, 360);
-            //this.arrowCar = new Car(new Vector2(200));
-            //Car obstacle = new Car(new Vector2(385));
-            
-            //Hier het scenario opbouwen, door bijvoorbeeld auto's aan te maken:
-            //AutonomousCar autoCar = new AutonomousCar(new Vector2(40, 400));
-            
-            //AutonomousCar autoCar2 = new AutonomousCar(new Vector2(-40, TOP_LANE));
-            //AutonomousCar autoCar3 = new AutonomousCar(new Vector2(-100, TOP_LANE));
-            //AutonomousCar autoCar4 = new AutonomousCar(new Vector2(-160, TOP_LANE));
-            //AutonomousCar autoCar5 = new AutonomousCar(new Vector2(-220, TOP_LANE));
-            //AutonomousCar anotherAutoCar = new AutonomousCar(new Vector2(20, 320));
-        }
 
-        protected override void UnloadContent()
-        {
+            Statistics statistics = new Statistics();
         }
-
-        private float CreateTimeElapsed = 0f;
 
         protected override void Update(GameTime gameTime)
         {
             this.CreateTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            if (this.CreateTimeElapsed > 1.5f)
+            if (this.CreateTimeElapsed > Simulator.CarGenerationRate)
             {
                 this.CreateTimeElapsed = 0f;
-                Vector2 carPos = new Vector2(-100, 0);
+                Vector2 carPos = new Vector2(-50, 0);
                 Random rand = new Random();
                 if (rand.Next(0, 2) == 1)
                 {
-                    carPos.Y = CoopDrivingSim.TOP_LANE;
+                    carPos.Y = Road.TOP_LANE;
                 }
                 else
                 {
-                    carPos.Y = CoopDrivingSim.BOTTOM_LANE;
+                    carPos.Y = Road.BOTTOM_LANE;
                 }
                 new AutonomousCar(carPos);
             }
 
             KeyboardState keyboard = Keyboard.GetState();
-            
+
+            if (keyboard.IsKeyDown(Keys.D1)) Simulator.CarGenerationRate -= 0.01f;
+            if (keyboard.IsKeyDown(Keys.D2)) Simulator.CarGenerationRate += 0.01f;
+            if (keyboard.IsKeyDown(Keys.Q)) Simulator.PathFollowingStimulus -= 10f;
+            if (keyboard.IsKeyDown(Keys.W)) Simulator.PathFollowingStimulus += 10f;
+            if (keyboard.IsKeyDown(Keys.A)) Simulator.SeparationStimulus -= 10f;
+            if (keyboard.IsKeyDown(Keys.S)) Simulator.SeparationStimulus += 10f;
+            if (keyboard.IsKeyDown(Keys.Z)) Simulator.LeaderFollowingStimulus -= 10f;
+            if (keyboard.IsKeyDown(Keys.X)) Simulator.LeaderFollowingStimulus += 10f;
+
+            if (keyboard.IsKeyDown(Keys.R))
+            {
+                List<Component2D> delete = new List<Component2D>();
+                foreach (Component2D component in Simulator.Components)
+                {
+                    if (component is Car) delete.Add(component);
+                }
+                foreach (Component2D component in delete) component.Dispose();
+                Simulator.CarsFinished = 0;
+                Simulator.Crashes = 0;
+            }
             if (keyboard.IsKeyDown(Keys.Escape))
             {
                 this.Exit();
             }
-
-            //arrowCar besturing
-            Vector2 force = Vector2.Zero;
-            if (keyboard.IsKeyDown(Keys.Down)) force.Y += 50f;
-            if (keyboard.IsKeyDown(Keys.Up)) force.Y -= 50f;
-            if (keyboard.IsKeyDown(Keys.Right)) force.X += 50f;
-            if (keyboard.IsKeyDown(Keys.Left)) force.X -= 50f;
-            //this.arrowCar.Force = force;
-            //einde arrowCar besturing
 
             Simulator.Update(gameTime);
 

@@ -15,7 +15,7 @@ namespace CoopDrivingSim
         private float targetY;
 
         public AutonomousCar(Vector2 position)
-            : base(position)
+            : base(position, new Vector2(100,0))
         {
             this.targetY = position.Y;
         }
@@ -24,7 +24,7 @@ namespace CoopDrivingSim
         {
             Car quarry = null;
 
-            //Console.WriteLine(this.GPSPosition);
+            //Console.WriteLine(this.Velocity);
             this.neighborhood.Clear();
             //Informatie van andere auto's ophalen:
             foreach (Component2D component in Simulator.Components)
@@ -39,15 +39,15 @@ namespace CoopDrivingSim
             this.behaviour = Behaviours.FollowPath;
 
             this.Force += this.Seek(new Vector2(2000, this.targetY));
-            Vector2 followPath = this.FollowPath() * 10000;
+            Vector2 followPath = this.FollowPath() * Simulator.PathFollowingStimulus;
             //Console.WriteLine("pat: " + followPath);
             this.Force += followPath;
-            Vector2 separate = this.Separate() * 10000;
+            Vector2 separate = this.Separate() * Simulator.SeparationStimulus;
             //Console.WriteLine("sep: " + separate);
             this.Force += separate;
 
             Car shouldFollow = ShouldFollow();
-            if (shouldFollow != null) this.Force += this.FollowLeader(shouldFollow);
+            if (shouldFollow != null) this.Force += this.FollowLeader(shouldFollow) * Simulator.LeaderFollowingStimulus;
 
             //switch (behaviour)
             //{
@@ -151,22 +151,22 @@ namespace CoopDrivingSim
             }
             else
             {
-                Vector2 target = new Vector2(futurePos.X, CoopDrivingSim.TOP_LANE);
+                Vector2 target = new Vector2(futurePos.X, Road.TOP_LANE);
                 return this.Seek(target);
             }
         }
 
         public float onPath(Vector2 futurePos)
         {
-            if (futurePos.X > CoopDrivingSim.NARROW_START && futurePos.X < CoopDrivingSim.NARROW_END)
+            if (futurePos.X > Road.NARROW_START - 50 && futurePos.X < Road.NARROW_END - 50)
             {
-                if (futurePos.Y < CoopDrivingSim.TOP_LANE - CoopDrivingSim.LANE_RADIUS / 2)
+                if (futurePos.Y < Road.TOP_LANE - Road.LANE_RADIUS / 2)
                 {
-                    return (CoopDrivingSim.TOP_LANE - CoopDrivingSim.LANE_RADIUS / 2) - futurePos.Y;
+                    return (Road.TOP_LANE - Road.LANE_RADIUS / 2) - futurePos.Y;
                 }
-                else if (futurePos.Y > CoopDrivingSim.TOP_LANE + CoopDrivingSim.LANE_RADIUS / 2)
+                else if (futurePos.Y > Road.TOP_LANE + Road.LANE_RADIUS / 2)
                 {
-                    return (CoopDrivingSim.TOP_LANE + CoopDrivingSim.LANE_RADIUS / 2) + futurePos.Y;
+                    return (Road.TOP_LANE + Road.LANE_RADIUS / 2) + futurePos.Y;
                 }
                 else
                 {
@@ -175,13 +175,13 @@ namespace CoopDrivingSim
             }
             else
             {
-                if (futurePos.Y < CoopDrivingSim.LANE_SEP - CoopDrivingSim.LANE_RADIUS)
+                if (futurePos.Y < Road.LANE_SEP - Road.LANE_RADIUS)
                 {
-                    return (CoopDrivingSim.LANE_SEP - CoopDrivingSim.LANE_RADIUS) - futurePos.Y;
+                    return (Road.LANE_SEP - Road.LANE_RADIUS) - futurePos.Y;
                 }
-                else if (futurePos.Y > CoopDrivingSim.LANE_SEP + CoopDrivingSim.LANE_RADIUS)
+                else if (futurePos.Y > Road.LANE_SEP + Road.LANE_RADIUS)
                 {
-                    return (CoopDrivingSim.LANE_SEP + CoopDrivingSim.LANE_RADIUS) + futurePos.Y;
+                    return (Road.LANE_SEP + Road.LANE_RADIUS) + futurePos.Y;
                 }
                 else
                 {
@@ -212,12 +212,12 @@ namespace CoopDrivingSim
 
         public Car ShouldFollow()
         {
-            if (this.GPSPosition.X > CoopDrivingSim.NARROW_START - 50 && this.GPSPosition.X < CoopDrivingSim.NARROW_END)
+            if (this.GPSPosition.X > Road.NARROW_START - 150 && this.GPSPosition.X < Road.NARROW_START + 100)
             {
                 foreach (Car car in this.neighborhood)
                 {
                     if (car.GPSPosition.X > this.GPSPosition.X && car.GPSPosition.Y > this.GPSPosition.Y
-                        && car.GPSPosition.X < CoopDrivingSim.NARROW_START + 100)
+                        && car.GPSPosition.X < Road.NARROW_START + 100)
                     {
                         return car;
                     }

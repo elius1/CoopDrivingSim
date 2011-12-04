@@ -51,10 +51,11 @@ namespace CoopDrivingSim
 
         private List<Car> collidedCars = new List<Car>();
 
-        public Car(Vector2 position)
+        public Car(Vector2 position, Vector2 startingVelocity)
             : base(Simulator.Content.Load<Texture2D>("Car2"))
         {
             this.Position = position;
+            this.velocity = startingVelocity;
             this.collisionDist = (float)Math.Sqrt(Math.Pow(this.Width, 2) + Math.Pow(this.Height, 2));
         }
 
@@ -94,6 +95,7 @@ namespace CoopDrivingSim
                         else
                         {
                             this.collidedCars.Add(component as Car);
+                            Simulator.Crashes++;
                             Console.WriteLine("!!!Collision!!!");
                         }
                     }
@@ -111,6 +113,12 @@ namespace CoopDrivingSim
             }
 
             base.Update();
+        }
+
+        public override void Dispose()
+        {
+            Simulator.CarsFinished++;
+            base.Dispose();
         }
     }
 }

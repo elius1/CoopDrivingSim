@@ -28,6 +28,13 @@ namespace CoopDrivingSim
 
         public static Color ClearColor = Color.CornflowerBlue;
 
+        public static float CarGenerationRate = 1.5f;
+        public static float PathFollowingStimulus = 10000f;
+        public static float SeparationStimulus = 10000f;
+        public static float LeaderFollowingStimulus = 0f;
+        public static int CarsFinished = 0;
+        public static int Crashes = 0;
+
         public static void InitializeSimulator(IGraphicsDeviceService graphicsDeviceService, ContentManager content)
         {
             Simulator.GraphicsDevice = graphicsDeviceService.GraphicsDevice;
