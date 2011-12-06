@@ -31,8 +31,9 @@ namespace CoopDrivingSim
             {
                 if (component is Car && component != this)
                 {
-                    this.neighborhood.Add(component as Car);
-                    quarry = (Car) component;
+                    Car car = component as Car;
+                    if ((car.GPSPosition - this.GPSPosition).Length() < 150f) this.neighborhood.Add(component as Car);
+                    quarry = car;
                 }
             }
 

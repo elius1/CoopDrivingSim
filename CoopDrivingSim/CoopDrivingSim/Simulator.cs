@@ -28,7 +28,7 @@ namespace CoopDrivingSim
 
         public static Color ClearColor = Color.CornflowerBlue;
 
-        public static float CarGenerationRate = 1.5f;
+        public static float CarGenerationRate = 2f;
         public static float PathFollowingStimulus = 10000f;
         public static float SeparationStimulus = 10000f;
         public static float LeaderFollowingStimulus = 0f;
