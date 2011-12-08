@@ -7,11 +7,17 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CoopDrivingSim
 {
+    /// <summary>
+    /// Represents some text that displays current statistics of the simulation.
+    /// </summary>
     public class Statistics : Component2D
     {
         private SpriteFont font;
         private string text;
         
+        /// <summary>
+        /// Initializes the statistics.
+        /// </summary>
         public Statistics()
             : base()
         {
@@ -19,6 +25,9 @@ namespace CoopDrivingSim
             this.Position = new Vector2(2,2);
         }
 
+        /// <summary>
+        /// Update the statistics text according to the current values.
+        /// </summary>
         public override void Update()
         {
             this.text =
@@ -32,6 +41,9 @@ namespace CoopDrivingSim
             base.Update();
         }
 
+        /// <summary>
+        /// Draw the statistics.
+        /// </summary>
         public override void Draw()
         {
             Simulator.SpriteBatch.DrawString(

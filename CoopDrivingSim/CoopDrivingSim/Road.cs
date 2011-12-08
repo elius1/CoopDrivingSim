@@ -5,6 +5,9 @@ using System.Text;
 
 namespace CoopDrivingSim
 {
+    /// <summary>
+    /// Contains all the road's measurements.
+    /// </summary>
     public static class Road
     {
         public const int ROAD_TOP = 280;

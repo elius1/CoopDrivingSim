@@ -8,24 +8,48 @@ using Microsoft.Xna.Framework.Content;
 
 namespace CoopDrivingSim
 {
+    /// <summary>
+    /// A simulator that can update and draw a collection of components.
+    /// </summary>
     public static class Simulator
     {
         private static bool isInitialized = false;
+        /// <summary>
+        /// Gets whether the simulator is initialized or not.
+        /// </summary>
         public static bool IsInitialized
         {
             get { return Simulator.isInitialized; }
         }
 
+        /// <summary>
+        /// The graphics device that the simulator is using.
+        /// </summary>
         public static GraphicsDevice GraphicsDevice;
 
+        /// <summary>
+        /// The sprite batch that the simulator is using.
+        /// </summary>
         public static SpriteBatch SpriteBatch;
 
+        /// <summary>
+        /// The content manager that the simulator is using.
+        /// </summary>
         public static ContentManager Content;
 
+        /// <summary>
+        /// The current simulator time.
+        /// </summary>
         public static GameTime SimTime;
 
+        /// <summary>
+        /// A list containing all components in the simulator.
+        /// </summary>
         public static List<Component2D> Components;
 
+        /// <summary>
+        /// The color that should be used by the simulator to clear the screen.
+        /// </summary>
         public static Color ClearColor = Color.CornflowerBlue;
 
         public static float CarGenerationRate = 2f;
@@ -35,6 +59,11 @@ namespace CoopDrivingSim
         public static int CarsFinished = 0;
         public static int Crashes = 0;
 
+        /// <summary>
+        /// Initialize the simulator using the specified graphics device and content manager.
+        /// </summary>
+        /// <param name="graphicsDeviceService"></param>
+        /// <param name="content"></param>
         public static void InitializeSimulator(IGraphicsDeviceService graphicsDeviceService, ContentManager content)
         {
             Simulator.GraphicsDevice = graphicsDeviceService.GraphicsDevice;
@@ -45,6 +74,10 @@ namespace CoopDrivingSim
             Simulator.isInitialized = true;
         }
 
+        /// <summary>
+        /// Updates the simulator and all of its components.
+        /// </summary>
+        /// <param name="simTime"></param>
         public static void Update(GameTime simTime)
         {
             Simulator.SimTime = simTime;
@@ -61,6 +94,10 @@ namespace CoopDrivingSim
             }
         }
 
+        /// <summary>
+        /// Draws the simulator and all of its components.
+        /// </summary>
+        /// <param name="simTime"></param>
         public static void Draw(GameTime simTime)
         {
             Simulator.SimTime = simTime;

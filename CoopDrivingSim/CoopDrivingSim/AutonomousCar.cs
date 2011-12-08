@@ -4,109 +4,99 @@ using Microsoft.Xna.Framework;
 
 namespace CoopDrivingSim
 {
-
+    /// <summary>
+    /// A Car that is controlled by steering behaviors.
+    /// </summary>
     public class AutonomousCar : Car
     {
-        enum Behaviours {Seek, Pursuit, Arrive, AvoidObstacles, FollowLeader, FollowPath, Interpose};
-
-        // behaviour
-        private Behaviours behaviour;
         private List<Car> neighborhood = new List<Car>();
         private float targetY;
 
+        /// <summary>
+        /// Initializes an autonomous car using the specified starting position.
+        /// </summary>
+        /// <param name="position">The position the car should start.</param>
         public AutonomousCar(Vector2 position)
             : base(position, new Vector2(100,0))
         {
+            //Remember the initial lane of this car.
             this.targetY = position.Y;
         }
 
+        /// <summary>
+        /// Updates the autonomous car's force using steering behaviors.
+        /// </summary>
         public override void Update()
         {
-            Car quarry = null;
-
-            //Console.WriteLine(this.Velocity);
+            //Get the current neighborhood.
             this.neighborhood.Clear();
-            //Informatie van andere auto's ophalen:
             foreach (Component2D component in Simulator.Components)
             {
                 if (component is Car && component != this)
                 {
                     Car car = component as Car;
+                    //Only use cars within the neighborhood radius.
                     if ((car.GPSPosition - this.GPSPosition).Length() < 150f) this.neighborhood.Add(component as Car);
-                    quarry = car;
                 }
             }
 
-            this.behaviour = Behaviours.FollowPath;
-
-            this.Force += this.Seek(new Vector2(2000, this.targetY));
-            Vector2 followPath = this.FollowPath() * Simulator.PathFollowingStimulus;
-            //Console.WriteLine("pat: " + followPath);
-            this.Force += followPath;
-            Vector2 separate = this.Separate() * Simulator.SeparationStimulus;
-            //Console.WriteLine("sep: " + separate);
-            this.Force += separate;
-
+            //Take the sum of all steering behaviors times their stimulus as the new steering force.
+            this.Force = Vector2.Zero;
+            this.Force += this.Seek(new Vector2(2000, this.targetY)); //Seek behavior
+            this.Force += this.FollowPath() * Simulator.PathFollowingStimulus; //Path following behavior
+            this.Force += this.Separate() * Simulator.SeparationStimulus; //Separation behavior
             Car shouldFollow = ShouldFollow();
-            if (shouldFollow != null) this.Force += this.FollowLeader(shouldFollow) * Simulator.LeaderFollowingStimulus;
+            //if (shouldFollow != null) this.Force += this.FollowLeader(shouldFollow) * Simulator.LeaderFollowingStimulus; //Old leader following behavior
+            if (shouldFollow != null && this.targetY == Road.TOP_LANE) this.Force += this.Arrive(new Vector2(Road.NARROW_START + 100, Road.TOP_LANE)) * Simulator.LeaderFollowingStimulus; //Leader following/breaking behavior
 
-            //switch (behaviour)
-            //{
-            //    case Behaviours.Seek:
-            //        this.Force = Seek(new Vector2(600, 400));
-            //        break;
-            //    case Behaviours.Arrive:
-            //        this.Force = Arrive(new Vector2(700, 500));
-            //        break;
-            //    case Behaviours.Pursuit:
-            //        this.Force = Pursuit(quarry);
-            //        break;
-            //    case Behaviours.FollowLeader:
-            //        this.Force = FollowLeader(quarry);
-            //        break;
-            //    case Behaviours.Interpose:
-            //        //this.Force = Interpose(null, null);
-            //        break;
-            //    case Behaviours.FollowPath:
-            //        this.Force += this.FollowPath();
-            //        break;
-            //    default:
-            //        //this.FollowPath();
-            //        break;
-            //}
-
-            
-
-            //base.Update() laten staan om te zorgen dat opgegeven force vertaald wordt
-            //naar versnelling, naar snelheid, naar positie, naar rotatie. En om
-            //collisions waar te nemen.
             base.Update();
         }
 
-        private static Vector2 PredictFuturePosition(Car car, float T)
+        /// <summary>
+        /// Predicts the position of the specified car after the specified time.
+        /// </summary>
+        /// <param name="car">The car of which the position should be predicted.</param>
+        /// <param name="t">The point in time at which the position should be predicted, in seconds.</param>
+        /// <returns>The predicted future position.</returns>
+        private static Vector2 PredictFuturePosition(Car car, float t)
         {
-            return car.GPSPosition + car.Velocity * T;
+            return car.GPSPosition + car.Velocity * t;
         }
 
-        public Vector2 Seek(Vector2 target)
+        /// <summary>
+        /// Executes the seeking behavior.
+        /// </summary>
+        /// <param name="target">The position that this behavior should 'seek'.</param>
+        /// <returns>The seeking steering force.</returns>
+        private Vector2 Seek(Vector2 target)
         {
-            Vector2 desiredVelocity = Vector2.Normalize(target - this.GPSPosition) * Car.MAX_VELOCITY; //Gebruik GPSPosition ipv daadwerkelijke positie.
+            Vector2 desiredVelocity = Vector2.Normalize(target - this.GPSPosition) * Car.MAX_VELOCITY;
             Vector2 steering = desiredVelocity - this.Velocity;
 
             return steering;
         }
 
-        public Vector2 Pursuit(Car quarry)
+        /// <summary>
+        /// Executes the pursuit behavior.
+        /// </summary>
+        /// <param name="quarry">The car that should be pursuited.</param>
+        /// <returns>The pursuit steering force.</returns>
+        private Vector2 Pursuit(Car quarry)
         {
             Vector2 distance = quarry.GPSPosition - this.GPSPosition;
-            // T is predicted time until interception
-            float T = distance.Length() / (this.Velocity - quarry.Velocity).Length();
+            //t is predicted time until interception.
+            float t = distance.Length() / (this.Velocity - quarry.Velocity).Length();
  
-            // seek predicted position
-            return Seek(PredictFuturePosition(quarry, T));
+            //Seek predicted position.
+            return Seek(AutonomousCar.PredictFuturePosition(quarry, t));
         }
 
-        public Vector2 Arrive(Vector2 target)
+        /// <summary>
+        /// Executes the arrival behavior.
+        /// </summary>
+        /// <param name="target">The position at which to arrive.</param>
+        /// <returns>The arrival steering force.</returns>
+        private Vector2 Arrive(Vector2 target)
         {
             float slowingDistance = 300;
 
@@ -119,13 +109,24 @@ namespace CoopDrivingSim
             return desiredVelocity - this.Velocity;
         }
 
-        public Vector2 FollowLeader(Car leader)
+        /// <summary>
+        /// Executes the leader following behavior.
+        /// </summary>
+        /// <param name="leader">The car that is designated as leader.</param>
+        /// <returns>The leader following steering force.</returns>
+        private Vector2 FollowLeader(Car leader)
         {
             float distanceOffset = this.CollisionDist;
             return Arrive(leader.GPSPosition - distanceOffset * leader.Velocity);
         }
 
-        public Vector2 Interpose(Car car1, Car car2)
+        /// <summary>
+        /// Executes the interpose behavior.
+        /// </summary>
+        /// <param name="car1">The first car.</param>
+        /// <param name="car2">The second car.</param>
+        /// <returns>The interpose steering force.</returns>
+        private Vector2 Interpose(Car car1, Car car2)
         {
             float distance = (((car1.GPSPosition + car2.GPSPosition) / 2) - this.GPSPosition).Length();
             float T = distance / this.Velocity.Length();
@@ -134,30 +135,43 @@ namespace CoopDrivingSim
             return Seek(desiredPosition);
         }
 
-        public Vector2 AvoidObstacles()
+        /// <summary>
+        /// Not implemented!
+        /// </summary>
+        /// <returns></returns>
+        private Vector2 AvoidObstacles()
         {
             return Vector2.Zero;
         }
 
-        public Vector2 FollowPath()
+        /// <summary>
+        /// Executes the path following behavior.
+        /// </summary>
+        /// <returns>The path following steering force.</returns>
+        private Vector2 FollowPath()
         {
             Vector2 futurePos = AutonomousCar.PredictFuturePosition(this, (float)Simulator.SimTime.ElapsedGameTime.TotalSeconds);
 
-            float outside = this.onPath(futurePos);
+            float outside = AutonomousCar.OnPath(futurePos);
             bool correctDirection = futurePos.X >= this.GPSPosition.X;
 
-            if (outside == 0 && correctDirection)
+            if (outside == 0 && correctDirection) //no correction is needed
             {
                 return Vector2.Zero;
             }
-            else
+            else //correction is needed
             {
                 Vector2 target = new Vector2(futurePos.X, Road.TOP_LANE);
                 return this.Seek(target);
             }
         }
 
-        public float onPath(Vector2 futurePos)
+        /// <summary>
+        /// Determines if the specified position is on the road.
+        /// </summary>
+        /// <param name="futurePos">The position that should be checked.</param>
+        /// <returns>A float indicating how far the Y position is from the road.</returns>
+        private static float OnPath(Vector2 futurePos)
         {
             if (futurePos.X > Road.NARROW_START - 50 && futurePos.X < Road.NARROW_END - 50)
             {
@@ -191,12 +205,20 @@ namespace CoopDrivingSim
             }
         }
 
-        public Vector2 Queue()
+        /// <summary>
+        /// Not implemented!
+        /// </summary>
+        /// <returns></returns>
+        private Vector2 Queue()
         {
             return Vector2.Zero;// seek, braking and separation
         }
 
-        public Vector2 Separate()
+        /// <summary>
+        /// Executes the separation behavior.
+        /// </summary>
+        /// <returns>The separation steering force.</returns>
+        private Vector2 Separate()
         {            
             Vector2 separation = Vector2.Zero;
             foreach (Car car in this.neighborhood)
@@ -211,7 +233,11 @@ namespace CoopDrivingSim
             return separation;
         }
 
-        public Car ShouldFollow()
+        /// <summary>
+        /// Determines whether this car should follow another car or not.
+        /// </summary>
+        /// <returns>The car that should be followed. Null if no car should be followed.</returns>
+        private Car ShouldFollow()
         {
             if (this.GPSPosition.X > Road.NARROW_START - 150 && this.GPSPosition.X < Road.NARROW_START + 100)
             {

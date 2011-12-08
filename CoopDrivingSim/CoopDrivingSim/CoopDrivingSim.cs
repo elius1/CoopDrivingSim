@@ -13,12 +13,18 @@ using Microsoft.Xna.Framework.Storage;
 
 namespace CoopDrivingSim
 {
+    /// <summary>
+    /// Builds the scenario for the simulator.
+    /// </summary>
     public class CoopDrivingSim : Game
     {
         private GraphicsDeviceManager graphics;
 
         private float CreateTimeElapsed = 0f;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public CoopDrivingSim()
         {
             this.graphics = new GraphicsDeviceManager(this);
@@ -31,16 +37,20 @@ namespace CoopDrivingSim
             this.graphics.ApplyChanges();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void Initialize()
         {
+            //intialize the simulator.
             Simulator.InitializeSimulator(this.graphics, this.Content);
-
-            Vector2 test = Vector2.Zero;
-            Vector2.Normalize(test);
 
             base.Initialize();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         protected override void LoadContent()
         {
             Sprite road = new Sprite(Simulator.Content.Load<Texture2D>("Road"));
@@ -49,8 +59,13 @@ namespace CoopDrivingSim
             Statistics statistics = new Statistics();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameTime"></param>
         protected override void Update(GameTime gameTime)
         {
+            //Car generation
             this.CreateTimeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
             if (this.CreateTimeElapsed > Simulator.CarGenerationRate)
             {
@@ -68,6 +83,7 @@ namespace CoopDrivingSim
                 new AutonomousCar(carPos);
             }
 
+            //Key stroke updates
             KeyboardState keyboard = Keyboard.GetState();
 
             if (keyboard.IsKeyDown(Keys.D1)) Simulator.CarGenerationRate -= 0.01f;
@@ -95,13 +111,19 @@ namespace CoopDrivingSim
                 this.Exit();
             }
 
+            //Update simulator
             Simulator.Update(gameTime);
 
             base.Update(gameTime);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="gameTime"></param>
         protected override void Draw(GameTime gameTime)
         {
+            //Draw simulator
             Simulator.Draw(gameTime);
 
             base.Draw(gameTime);
