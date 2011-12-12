@@ -35,7 +35,7 @@ namespace CoopDrivingSim
                 "Path following stimulus: " + Simulator.PathFollowingStimulus + " (Q,W)\n" +
                 "Separation stimulus: " + Simulator.SeparationStimulus + " (A,S)\n" +
                 "Leader following stimulus: " + Simulator.LeaderFollowingStimulus + " (Z,X)\n" +
-                "Throughput: " + (int)(Simulator.CarsFinished / Simulator.SimTime.TotalGameTime.TotalMinutes) + " cars/min\n" +
+                "Throughput: " + (int)(Simulator.CarsFinished / Simulator.TotalMinutesSinceLastReset) + " cars/min\n" +
                 "Crashes: " + Simulator.Crashes / 2;
             
             base.Update();

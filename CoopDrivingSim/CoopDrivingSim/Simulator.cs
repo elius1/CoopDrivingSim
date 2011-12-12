@@ -41,6 +41,7 @@ namespace CoopDrivingSim
         /// The current simulator time.
         /// </summary>
         public static GameTime SimTime;
+        public static float TotalMinutesSinceLastReset = 0f;
 
         /// <summary>
         /// A list containing all components in the simulator.
@@ -81,6 +82,7 @@ namespace CoopDrivingSim
         public static void Update(GameTime simTime)
         {
             Simulator.SimTime = simTime;
+            Simulator.TotalMinutesSinceLastReset += (float)simTime.ElapsedGameTime.TotalMinutes;
 
             List<Component2D> updating = new List<Component2D>();
             foreach (Component2D component in Simulator.Components)

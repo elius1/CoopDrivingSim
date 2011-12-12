@@ -105,6 +105,7 @@ namespace CoopDrivingSim
                 foreach (Component2D component in delete) component.Dispose();
                 Simulator.CarsFinished = 0;
                 Simulator.Crashes = 0;
+                Simulator.TotalMinutesSinceLastReset = 0f;
             }
             if (keyboard.IsKeyDown(Keys.Escape))
             {
